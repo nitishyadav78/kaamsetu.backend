@@ -26,11 +26,11 @@ public class User {
     private String password;
 
     @Enumerated(EnumType.STRING)
-    private Roles roles;
+    private Role role;
 
     private String college;
 
-    private String skill;
+    private String skills;
 
     private String year;
 
