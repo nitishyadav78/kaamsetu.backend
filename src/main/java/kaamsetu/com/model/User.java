@@ -30,6 +30,7 @@ public class User {
 
     private String college;
 
+
     private String skills;
 
     private String year;

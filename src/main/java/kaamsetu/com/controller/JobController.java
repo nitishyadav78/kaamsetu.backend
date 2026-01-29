@@ -1,6 +1,7 @@
 package kaamsetu.com.controller;
 
 import kaamsetu.com.DTO.JobCreateRequest;
+import kaamsetu.com.DTO.JobSubmitRequest;
 import kaamsetu.com.model.Job;
 import kaamsetu.com.model.JobStatus;
 import kaamsetu.com.model.User;
@@ -9,6 +10,7 @@ import kaamsetu.com.repository.UserRepository;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 @RestController
@@ -71,5 +73,44 @@ public class JobController {
         return jobRepository.findById(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
+    }
+    @PutMapping("/{jobId}/submit")
+    public ResponseEntity<?>submitJob(@PathVariable Long jobId, @RequestBody JobSubmitRequest req)
+    {
+        Job job = jobRepository.findById(jobId).orElse(null);
+        //Job Exist or Not
+        if(job == null)
+        {
+            return ResponseEntity.badRequest().body("InValid Job Id");
+        }
+        //Job Assigned Id
+        if(job.getStatus() != JobStatus.ASSIGNED)
+        {
+            return ResponseEntity.badRequest().body("Job Is Not Assigned");
+        }
+
+        //job Student valid or not
+
+        User student = userRepository.findById(req.getStudentId()).orElse(null);
+        if(student == null)
+        {
+            return ResponseEntity.badRequest().body("Invalid Student");
+        }
+
+
+        if(job.getAssignedTo().getId() != student.getId())
+        {
+            return ResponseEntity.badRequest().body("You are not assigned to this job");
+        }
+
+        job.setSubmissionMessage(req.getMessages());
+        job.setSubmissionLink(req.getLink());
+        job.setSubmittedAt(LocalDateTime.now());
+
+        job.setStatus(JobStatus.SUBMITTED);
+        jobRepository.save(job);
+
+        return ResponseEntity.ok("Job Submitted Successfully");
+
     }
 }

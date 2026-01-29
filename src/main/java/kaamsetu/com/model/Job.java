@@ -19,7 +19,7 @@ import java.time.LocalDateTime;
 public class Job {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private int id;
+    private Long id;
 
     private String title;
     @Column(length = 3000)
@@ -44,5 +44,10 @@ public class Job {
 
     private LocalDateTime createdAt = LocalDateTime.now();
 
+    private String submissionMessage;
+
+    private String submissionLink;
+
+    private LocalDateTime submittedAt;
 
 }
