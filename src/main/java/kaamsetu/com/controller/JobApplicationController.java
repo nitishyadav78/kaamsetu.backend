@@ -5,6 +5,7 @@ import kaamsetu.com.model.*;
 import kaamsetu.com.repository.JobApplicationRepository;
 import kaamsetu.com.repository.JobRepository;
 import kaamsetu.com.repository.UserRepository;
+import kaamsetu.com.service.JobApplicationService;
 import org.apache.catalina.core.AprLifecycleListener;
 import org.hibernate.metamodel.mapping.MappingModelCreationLogging_$logger;
 import org.springframework.http.ResponseEntity;
@@ -13,8 +14,9 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/api/application")
 public class JobApplicationController {
+    private final JobApplicationService applicationService;
 
     private final JobApplicationRepository applicationRepository;
 
@@ -22,11 +24,12 @@ public class JobApplicationController {
 
     private final UserRepository userRepository;
 
-    public JobApplicationController(JobApplicationRepository applicationRepository, JobRepository jobRepository, UserRepository userRepository)
+    public JobApplicationController(JobApplicationRepository applicationRepository, JobRepository jobRepository, UserRepository userRepository, JobApplicationService applicationService)
     {
         this.applicationRepository = applicationRepository;
         this.jobRepository = jobRepository;
         this.userRepository = userRepository;
+        this.applicationService = applicationService;
     }
 
     @PostMapping("/applications")
@@ -127,4 +130,15 @@ public class JobApplicationController {
         applicationRepository.save(application);
         return ResponseEntity.ok("Application rejected");
     }
+    @PostMapping("apply")
+    public ResponseEntity<?> apply(@RequestBody JobApplicationRequest req)
+    {
+        return ResponseEntity.ok(applicationService.applyForJob(req.getJobId(), req.getStudentId(), req.getCoverMessages));
+    }
+    @PutMapping("/{id}/accept")
+    public ResponseEntity<?> accept(@PathVariable Long id)
+    {
+        return ResponseEntity.ok(applicationService.acceptApplication(id));
+    }
+
 }
