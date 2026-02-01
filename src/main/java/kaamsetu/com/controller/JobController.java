@@ -7,6 +7,7 @@ import kaamsetu.com.model.JobStatus;
 import kaamsetu.com.model.User;
 import kaamsetu.com.repository.JobRepository;
 import kaamsetu.com.repository.UserRepository;
+import kaamsetu.com.service.JobService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -16,68 +17,50 @@ import java.util.Optional;
 @RestController
 @RequestMapping("/api/jobs")
 public class JobController {
-    private final JobRepository jobRepository;
+    private final JobService jobService;
 
-    private final UserRepository userRepository;
-
-
-
-    public JobController(JobRepository jobRepository, UserRepository userRepository)
+    public JobController(JobService jobService)
     {
-        this.jobRepository = jobRepository;
-        this.userRepository = userRepository;
+        this.jobService = jobService;
     }
 
     @PostMapping
     public ResponseEntity<?> createJob(@RequestBody JobCreateRequest req)
     {
-        Optional<User>clientOpt = userRepository.findById(req.getClientId());
-        if(clientOpt.isEmpty())
+        try
         {
-            return ResponseEntity.badRequest().body("Invalid ClientId, user not found");
-
+            return  ResponseEntity.ok(jobService.createJob(req));
         }
-
-        User client = clientOpt.get();
-
-        Job job = Job.builder()
-                .title(req.getTitle())
-                .description(req.getDescription())
-                .category(req.getCategory())
-                .budget(req.getBudget())
-                .deadline(req.getDeadline())
-                .client(client)
-                .status(JobStatus.OPEN)
-                .build();
-
-        Job saved = jobRepository.save(job);
-        return ResponseEntity.ok(saved);
+        catch (Exception e)
+        {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 
 
     @GetMapping
     public ResponseEntity<List<Job>> listJobs()
     {
-        List<Job> jobs = jobRepository.findAll();
-        return  ResponseEntity.ok(jobs);
+        return ResponseEntity.ok(jobService.getAllJobs());
     }
     @GetMapping("/open")
     public ResponseEntity<List<Job>> listOpenJobs()
     {
-        List<Job> openJobs = jobRepository.findByStatus(JobStatus.OPEN);
-        return ResponseEntity.ok(openJobs);
-    }
-    @GetMapping("/{id}")
-    public ResponseEntity<?>getJob(@PathVariable Long id)
-    {
-        return jobRepository.findById(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+      return ResponseEntity.ok(jobService.getOpenJobs());
     }
     @PutMapping("/{jobId}/submit")
     public ResponseEntity<?>submitJob(@PathVariable Long jobId, @RequestBody JobSubmitRequest req)
     {
-        Job job = jobRepository.findById(jobId).orElse(null);
+        String result = jobService.submitJob(jobId, req);
+        if(result.contains("SuccessFully"))
+        {
+            return ResponseEntity.ok(result);
+        }
+        return ResponseEntity.badRequest().body(result);
+
+
+        // phle mera controller directly Repository se baat krta hai lekin ab hamne
+        /*Job job = jobRepository.findById(jobId).orElse(null);
         //Job Exist or Not
         if(job == null)
         {
@@ -111,6 +94,8 @@ public class JobController {
         jobRepository.save(job);
 
         return ResponseEntity.ok("Job Submitted Successfully");
+
+         */
 
     }
 }

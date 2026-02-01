@@ -32,8 +32,15 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody AuthRequest a) {
-        return authService.loginUser(a)
-                .map(response -> ResponseEntity.ok(response)) // Agar login sahi raha toh AuthResponse (token ke saath) bhejega
-                .orElse(ResponseEntity.status(401).body("Invalid Email or password")); // Agar galat raha toh 401 error
+
+        var response = authService.loginUser(a);
+           if(response.isPresent())
+           {
+               return ResponseEntity.ok(response.get());
+           }
+           else
+           {
+               return ResponseEntity.status(401).body("Invalid Email or Password");
+           }
     }
 }
